@@ -594,6 +594,16 @@ client = Client()`;
    * Get code to connect to a given cluster.
    */
   export function getClientCode(cluster: IClusterModel): string {
+    // Use dask_gateway to connect to Dask gateway clusters to avoid auth issues (#135)
+    if (cluster.scheduler_address.split(':')[0] === 'gateway') {
+      return `from dask_gateway import Gateway
+
+client = Gateway().connect("${cluster.scheduler_address
+        .split('/')
+        .pop()}").get_client()
+client
+`;
+    }
     return `from dask.distributed import Client
 
 client = Client("${cluster.scheduler_address}")
